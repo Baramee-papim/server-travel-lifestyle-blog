@@ -1,16 +1,40 @@
 import express from "express";
 import "dotenv/config";
 import connectionPool from "./utils/db.mjs";
+import cors from "cors";
 
 const app = express();
 const port = process.env.PORT || 4000;
 
-
+// CORS middleware should be before other middleware
+app.use(cors({
+    origin: [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://travel-lifestyle-blog.vercel.app",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
 app.use(express.json());
+
 app.get("/health", (req, res) => {
     res.status(200).json({ message: "OK" });
   });
+
+app.get("/posts", async (req, res) => {
+    try {
+        const query = `select * from posts`;
+        const result = await connectionPool.query(query);
+        return res.status(200).json({ data: result.rows });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server could not get posts because database connection", error: error.message });
+    }
+    
+});
 
 app.post("/posts", async (req, res) => {
 
