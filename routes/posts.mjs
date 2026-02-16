@@ -1,10 +1,11 @@
 import express from "express";
 import connectionPool from "../utils/db.mjs";
+import { validatePostData } from "../middleware/validatePost.mjs";
 
-const router = express.Router();
+const postsRouter = express.Router();
 
 // GET /posts - Get all posts with pagination, filtering, and search
-router.get("/", async (req, res) => {
+postsRouter.get("/", async (req, res) => {
     try {
         // Get query parameters
         const page = parseInt(req.query.page) || 1;
@@ -80,7 +81,7 @@ router.get("/", async (req, res) => {
 });
 
 // GET /posts/:postId - Get a single post by ID
-router.get("/:postId", async (req, res) => {
+postsRouter.get("/:postId", async (req, res) => {
     try {
         const postId = req.params.postId;
         
@@ -102,13 +103,9 @@ router.get("/:postId", async (req, res) => {
 });
 
 // POST /posts - Create a new post
-router.post("/", async (req, res) => {
+postsRouter.post("/", validatePostData, async (req, res) => {
     try {
         const newPost = req.body;
-
-        if (!newPost.title || !newPost.image || !newPost.category_id || !newPost.description || !newPost.content || !newPost.status_id) {
-            return res.status(400).json({ message: "Server could not create post because there are missing data from client" });
-        }
         
         const query = `insert into posts (title, image, category_id, description, content, status_id)
         values ($1, $2, $3, $4, $5, $6)`;
@@ -136,7 +133,7 @@ router.post("/", async (req, res) => {
 });
 
 // PUT /posts/:postId - Update a post
-router.put("/:postId", async (req, res) => {
+postsRouter.put("/:postId", validatePostData, async (req, res) => {
     try {
         const postId = req.params.postId;
         const updatedPost = req.body;
@@ -177,7 +174,7 @@ router.put("/:postId", async (req, res) => {
 });
 
 // DELETE /posts/:postId - Delete a post
-router.delete("/:postId", async (req, res) => {
+postsRouter.delete("/:postId", async (req, res) => {
     try {
         const postId = req.params.postId;
         const query = `DELETE FROM posts WHERE id = $1`;
@@ -197,4 +194,4 @@ router.delete("/:postId", async (req, res) => {
     }
 });
 
-export default router;
+export default postsRouter;
