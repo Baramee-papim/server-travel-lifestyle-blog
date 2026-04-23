@@ -1,7 +1,7 @@
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
-import postsRoute from "./routes/posts.route.mjs";
+import articleRoute from "./routes/article.route.mjs";
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -30,7 +30,7 @@ app.get("/health", (req, res) => {
 });
 
 
-app.use("/api/posts", postsRoute);
+app.use("/api/article", articleRoute);
 
 app.listen(port, () => {
   console.log(`Server is running at ${port}`);

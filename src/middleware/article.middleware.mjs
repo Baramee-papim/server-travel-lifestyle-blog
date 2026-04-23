@@ -1,18 +1,18 @@
 const isMissing = (value) => value === undefined || value === null;
 
-const PostsMiddleware = {
-  validatePostId: (req, res, next) => {
-    const postId = Number(req.params.postId);
-    if (!Number.isInteger(postId) || postId < 1) {
+const ArticleMiddleware = {
+  validateArticleId: (req, res, next) => {
+    const articleId = Number(req.params.articleId);
+    if (!Number.isInteger(articleId) || articleId < 1) {
       return res.status(400).json({
-        message: "Post ID must be a positive integer",
+        message: "Article ID must be a positive integer",
       });
     }
 
     return next();
   },
 
-  validatePostData: (req, res, next) => {
+  validateArticleData: (req, res, next) => {
     const data = req.body;
     const errors = [];
 
@@ -63,4 +63,4 @@ const PostsMiddleware = {
   },
 };
 
-export default PostsMiddleware;
+export default ArticleMiddleware;
