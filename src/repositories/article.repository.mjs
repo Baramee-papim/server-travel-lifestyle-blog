@@ -6,10 +6,9 @@ const postsFromWithJoins = `
   LEFT JOIN statuses s ON p.status_id = s.id
 `;
 
-const postsColumnsNoStatusId = `
+const postsColumnsBase = `
   p.id,
   p.image,
-  p.category_id,
   p.title,
   p.description,
   p.date,
@@ -19,10 +18,8 @@ const postsColumnsNoStatusId = `
 
 const postsSelectWithJoins = `
   SELECT
-    ${postsColumnsNoStatusId},
-    CASE
-      WHEN c.id IS NOT NULL THEN json_build_object('id', c.id, 'name', c.name)
-    END AS category,
+    ${postsColumnsBase},
+    c.name AS category,
     s.status AS status
   ${postsFromWithJoins}
 `;
