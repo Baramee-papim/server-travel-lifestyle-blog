@@ -25,15 +25,15 @@ const ArticleService = {
     const values = [];
 
     if (category) {
-      conditions.push(`category_id = $${values.length + 1}`);
+      conditions.push(`p.category_id = $${values.length + 1}`);
       values.push(category);
     }
 
     if (keyword) {
       conditions.push(`(
-        title ILIKE $${values.length + 1} OR
-        description ILIKE $${values.length + 1} OR
-        content ILIKE $${values.length + 1}
+        p.title ILIKE $${values.length + 1} OR
+        p.description ILIKE $${values.length + 1} OR
+        p.content ILIKE $${values.length + 1}
       )`);
       values.push(`%${keyword}%`);
     }
