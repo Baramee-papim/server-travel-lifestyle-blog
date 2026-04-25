@@ -85,6 +85,57 @@ const AuthService = {
       profilePic: userProfile.profile_pic,
     };
   },
+
+  /**
+   * Change password for authenticated user.
+   * Requires currentPassword verification before update.
+   */
+  resetPassword: async (
+    accessToken,
+    { currentPassword, newPassword, confirmPassword }
+  ) => {
+    const supabaseAuthed = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      },
+    );
+
+    // Resolve current user's email from access token first.
+    const { data: authUserData, error: authUserError } =
+      await supabaseAuthed.auth.getUser();
+    if (authUserError || !authUserData.user?.email) {
+      throw createHttpError(401, "Unauthorized or token expired");
+    }
+
+    if (newPassword !== confirmPassword) {
+      throw createHttpError(400, "newPassword and confirmPassword do not match");
+    }
+
+    // Verify current password by signing in with current credentials.
+    const { error: verifyCurrentPasswordError } =
+      await supabase.auth.signInWithPassword({
+        email: authUserData.user.email,
+        password: currentPassword,
+      });
+
+    if (verifyCurrentPasswordError) {
+      throw createHttpError(400, "Current password is incorrect");
+    }
+
+    const { error } = await supabaseAuthed.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      throw createHttpError(400, error.message || "Could not update password");
+    }
+
+    return { message: "Password updated successfully" };
+  },
 };
 
 export default AuthService;

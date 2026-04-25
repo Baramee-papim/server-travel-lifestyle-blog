@@ -78,6 +78,62 @@ const AuthMiddleware = {
     return next();
   },
 
+  validateResetPasswordData: (req, res, next) => {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const errors = [];
+
+    if (isMissing(currentPassword)) {
+      errors.push("currentPassword is required");
+    } else if (
+      typeof currentPassword !== "string" ||
+      isBlankString(currentPassword)
+    ) {
+      errors.push("currentPassword must be a non-empty string");
+    }
+
+    if (isMissing(newPassword)) {
+      errors.push("newPassword is required");
+    } else if (typeof newPassword !== "string" || isBlankString(newPassword)) {
+      errors.push("newPassword must be a non-empty string");
+    } else if (newPassword.length < 6) {
+      errors.push("newPassword must be at least 6 characters");
+    }
+
+    if (isMissing(confirmPassword)) {
+      errors.push("confirmPassword is required");
+    } else if (
+      typeof confirmPassword !== "string" ||
+      isBlankString(confirmPassword)
+    ) {
+      errors.push("confirmPassword must be a non-empty string");
+    }
+
+    if (
+      typeof newPassword === "string" &&
+      typeof confirmPassword === "string" &&
+      newPassword !== confirmPassword
+    ) {
+      errors.push("newPassword and confirmPassword do not match");
+    }
+
+    if (
+      typeof currentPassword === "string" &&
+      typeof newPassword === "string" &&
+      currentPassword === newPassword
+    ) {
+      errors.push("newPassword must be different from currentPassword");
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({
+        message: errors[0],
+        errors,
+      });
+    }
+
+    return next();
+  },
+
   validateAuthToken: (req, res, next) => {
     const authHeader = req.headers.authorization;
 

@@ -46,6 +46,24 @@ const AuthController = {
       return handleControllerError(res, error, "Internal server error");
     }
   },
+
+  resetPassword: async (req, res) => {
+    try {
+      const { currentPassword, newPassword, confirmPassword } = req.body;
+      const result = await AuthService.resetPassword(req.authToken, {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+      return res.status(200).json(result);
+    } catch (error) {
+      return handleControllerError(
+        res,
+        error,
+        "An error occurred while resetting password",
+      );
+    }
+  },
 };
 
 export default AuthController;
