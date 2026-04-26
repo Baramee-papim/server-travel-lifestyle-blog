@@ -115,9 +115,10 @@ const AuthService = {
       throw createHttpError(400, "newPassword and confirmPassword do not match");
     }
 
-    // Verify current password by signing in with current credentials.
+    // Verify current password using the same authed client.
+    // This ensures the client has an active session before updateUser.
     const { error: verifyCurrentPasswordError } =
-      await supabase.auth.signInWithPassword({
+      await supabaseAuthed.auth.signInWithPassword({
         email: authUserData.user.email,
         password: currentPassword,
       });
