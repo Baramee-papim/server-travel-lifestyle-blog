@@ -87,6 +87,51 @@ const AuthService = {
       name: userProfile.name,
       role: userProfile.role,
       profilePic: userProfile.profile_pic,
+      bio: userProfile.bio,
+    };
+  },
+
+  updateProfile: async (accessToken, { name, username, bio, profilePic }) => {
+    const { data: authUserData, error: authUserError } =
+      await supabase.auth.getUser(accessToken);
+    if (authUserError || !authUserData.user?.id) {
+      throw createHttpError(401, "Unauthorized or token expired");
+    }
+
+    const normalizedUsername = username.trim();
+    const normalizedName = name.trim();
+    const normalizedBio = typeof bio === "string" ? bio.trim() : "";
+    const normalizedProfilePic =
+      typeof profilePic === "string" ? profilePic.trim() : "";
+
+    const existingUsername = await AuthRepository.getUserByUsernameExcludingId(
+      normalizedUsername,
+      authUserData.user.id,
+    );
+    if (existingUsername) {
+      throw createHttpError(400, "This username is already taken");
+    }
+
+    const updatedUser = await AuthRepository.updateUserProfile({
+      id: authUserData.user.id,
+      name: normalizedName,
+      username: normalizedUsername,
+      bio: normalizedBio,
+      profilePic: normalizedProfilePic,
+    });
+
+    if (!updatedUser) {
+      throw createHttpError(404, "User profile was not found");
+    }
+
+    return {
+      id: authUserData.user.id,
+      email: authUserData.user.email,
+      username: updatedUser.username,
+      name: updatedUser.name,
+      role: updatedUser.role,
+      profilePic: updatedUser.profile_pic,
+      bio: updatedUser.bio,
     };
   },
 

@@ -15,4 +15,14 @@ uploadRoute.post(
   UploadController.uploadArticleImage,
 );
 
+uploadRoute.post(
+  "/profile-image",
+  [
+    AuthMiddleware.validateAuthToken,
+    UploadMiddleware.uploadArticleImage,
+    UploadMiddleware.handleUploadError,
+  ],
+  UploadController.uploadProfileImage,
+);
+
 export default uploadRoute;

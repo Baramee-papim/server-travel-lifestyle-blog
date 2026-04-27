@@ -25,6 +25,22 @@ const UploadController = {
       );
     }
   },
+
+  uploadProfileImage: async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Image file is required" });
+      }
+      const imageUrl = await UploadService.uploadProfileImage(req.file);
+      return res.status(201).json({ imageUrl });
+    } catch (error) {
+      return handleControllerError(
+        res,
+        error,
+        "Server could not upload image because storage connection",
+      );
+    }
+  },
 };
 
 export default UploadController;

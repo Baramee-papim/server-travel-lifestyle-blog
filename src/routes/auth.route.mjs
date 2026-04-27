@@ -13,11 +13,17 @@ const AuthRouteHandlers = {
     AuthMiddleware.validateResetPasswordData,
     AuthController.resetPassword,
   ],
+  updateProfile: [
+    AuthMiddleware.validateAuthToken,
+    AuthMiddleware.validateUpdateProfileData,
+    AuthController.updateProfile,
+  ],
 };
 
 authRoute.post("/register", AuthRouteHandlers.register);
 authRoute.post("/login", AuthRouteHandlers.login);
 authRoute.get("/get-user", AuthRouteHandlers.getUser);
 authRoute.post("/reset-password", AuthRouteHandlers.resetPassword);
+authRoute.put("/profile", AuthRouteHandlers.updateProfile);
 
 export default authRoute;

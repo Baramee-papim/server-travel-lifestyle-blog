@@ -134,6 +134,44 @@ const AuthMiddleware = {
     return next();
   },
 
+  validateUpdateProfileData: (req, res, next) => {
+    const { name, username, bio, profilePic } = req.body;
+    const errors = [];
+
+    if (isMissing(name)) {
+      errors.push("name is required");
+    } else if (typeof name !== "string" || isBlankString(name)) {
+      errors.push("name must be a non-empty string");
+    }
+
+    if (isMissing(username)) {
+      errors.push("username is required");
+    } else if (typeof username !== "string" || isBlankString(username)) {
+      errors.push("username must be a non-empty string");
+    } else if (username.trim().length < 3) {
+      errors.push("username must be at least 3 characters");
+    }
+
+    if (!isMissing(bio) && typeof bio !== "string") {
+      errors.push("bio must be a string");
+    } else if (typeof bio === "string" && bio.length > 300) {
+      errors.push("bio must be 300 characters or less");
+    }
+
+    if (!isMissing(profilePic) && typeof profilePic !== "string") {
+      errors.push("profilePic must be a string");
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({
+        message: errors[0],
+        errors,
+      });
+    }
+
+    return next();
+  },
+
   validateAuthToken: (req, res, next) => {
     const authHeader = req.headers.authorization;
 
