@@ -16,7 +16,7 @@ const createHttpError = (status, message) => {
 };
 
 const ArticleService = {
-  getArticles: async ({ page, limit, category, keyword }) => {
+  getArticles: async ({ page, limit, category, status, keyword }) => {
     const currentPage = toPositiveInt(page, 1);
     const currentLimit = toPositiveInt(limit, 6);
     const offset = (currentPage - 1) * currentLimit;
@@ -27,6 +27,17 @@ const ArticleService = {
     if (category) {
       conditions.push(`p.category_id = $${values.length + 1}`);
       values.push(category);
+    }
+
+    if (status) {
+      const normalizedStatus = String(status).trim().toLowerCase();
+      if (normalizedStatus === "published") {
+        conditions.push(`LOWER(s.status) IN ($${values.length + 1}, $${values.length + 2})`);
+        values.push("published", "publish");
+      } else {
+        conditions.push(`LOWER(s.status) = $${values.length + 1}`);
+        values.push(normalizedStatus);
+      }
     }
 
     if (keyword) {
