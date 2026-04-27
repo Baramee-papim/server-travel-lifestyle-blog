@@ -29,6 +29,32 @@ const AuthRepository = {
     const result = await connectionPool.query(query, [id]);
     return result.rows[0] || null;
   },
+
+  getUserByUsernameExcludingId: async (username, excludedUserId) => {
+    const query = `
+      SELECT * FROM users
+      WHERE username = $1
+        AND id <> $2
+    `;
+    const result = await connectionPool.query(query, [username, excludedUserId]);
+    return result.rows[0] || null;
+  },
+
+  updateUserProfile: async ({ id, name, username, bio, profilePic }) => {
+    const query = `
+      UPDATE users
+      SET
+        name = $2,
+        username = $3,
+        bio = $4,
+        profile_pic = $5
+      WHERE id = $1
+      RETURNING *
+    `;
+    const values = [id, name, username, bio, profilePic];
+    const result = await connectionPool.query(query, values);
+    return result.rows[0] || null;
+  },
 };
 
 export default AuthRepository;

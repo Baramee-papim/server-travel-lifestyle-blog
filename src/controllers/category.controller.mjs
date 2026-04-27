@@ -22,6 +22,45 @@ const CategoryController = {
       );
     }
   },
+
+  createCategory: async (req, res) => {
+    try {
+      await CategoryService.createCategory(req.body);
+      return res.status(201).json({ message: "Created category successfully" });
+    } catch (error) {
+      return handleControllerError(
+        res,
+        error,
+        "Server could not create category because database connection",
+      );
+    }
+  },
+
+  updateCategoryById: async (req, res) => {
+    try {
+      await CategoryService.updateCategoryById(req.params.categoryId, req.body);
+      return res.status(200).json({ message: "Updated category successfully" });
+    } catch (error) {
+      return handleControllerError(
+        res,
+        error,
+        "Server could not update category because database connection",
+      );
+    }
+  },
+
+  deleteCategoryById: async (req, res) => {
+    try {
+      await CategoryService.deleteCategoryById(req.params.categoryId);
+      return res.status(200).json({ message: "Deleted category successfully" });
+    } catch (error) {
+      return handleControllerError(
+        res,
+        error,
+        "Server could not delete category because database connection",
+      );
+    }
+  },
 };
 
 export default CategoryController;

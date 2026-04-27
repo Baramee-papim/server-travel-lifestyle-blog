@@ -64,6 +64,28 @@ const AuthController = {
       );
     }
   },
+
+  updateProfile: async (req, res) => {
+    try {
+      const { name, username, bio, profilePic } = req.body;
+      const updatedProfile = await AuthService.updateProfile(req.authToken, {
+        name,
+        username,
+        bio,
+        profilePic,
+      });
+      return res.status(200).json({
+        message: "Profile updated successfully",
+        user: updatedProfile,
+      });
+    } catch (error) {
+      return handleControllerError(
+        res,
+        error,
+        "An error occurred while updating profile",
+      );
+    }
+  },
 };
 
 export default AuthController;

@@ -1,28 +1,47 @@
 import supabaseAdmin from "../utils/supabase-admin.mjs";
 
-const bucketName = "article-img";
+const ARTICLE_BUCKET_NAME = "article-img";
+const PROFILE_BUCKET_NAME = "profile-img";
 
-const buildFilePath = (fileName) => {
+const buildFilePath = (prefix, fileName) => {
   const safeName = fileName.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9._-]/g, "");
-  return `articles/${Date.now()}-${safeName}`;
+  return `${prefix}/${Date.now()}-${safeName}`;
+};
+
+const uploadImageToBucket = async (bucketName, pathPrefix, file, fallbackFileName) => {
+  const filePath = buildFilePath(pathPrefix, file.originalname || fallbackFileName);
+  const { error } = await supabaseAdmin.storage
+    .from(bucketName)
+    .upload(filePath, file.buffer, {
+      contentType: file.mimetype,
+      upsert: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const { data } = supabaseAdmin.storage.from(bucketName).getPublicUrl(filePath);
+  return data.publicUrl;
 };
 
 const UploadService = {
   uploadArticleImage: async (file) => {
-    const filePath = buildFilePath(file.originalname || "article-image");
-    const { error } = await supabaseAdmin.storage
-      .from(bucketName)
-      .upload(filePath, file.buffer, {
-        contentType: file.mimetype,
-        upsert: false,
-      });
+    return uploadImageToBucket(
+      ARTICLE_BUCKET_NAME,
+      "articles",
+      file,
+      "article-image",
+    );
+  },
 
-    if (error) {
-      throw error;
-    }
-
-    const { data } = supabaseAdmin.storage.from(bucketName).getPublicUrl(filePath);
-    return data.publicUrl;
+  uploadProfileImage: async (file) => {
+    return uploadImageToBucket(
+      PROFILE_BUCKET_NAME,
+      "profiles",
+      file,
+      "profile-image",
+    );
   },
 };
 
