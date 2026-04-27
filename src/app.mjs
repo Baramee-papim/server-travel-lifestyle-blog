@@ -4,6 +4,7 @@ import cors from "cors";
 import articleRoute from "./routes/article.route.mjs";
 import authRoute from "./routes/auth.route.mjs";
 import categoryRoute from "./routes/category.route.mjs";
+import uploadRoute from "./routes/upload.route.mjs";
 const app = express();
 const port = process.env.PORT || 4000;
 
@@ -33,6 +34,7 @@ app.get("/health", (req, res) => {
 app.use("/api/article", articleRoute);
 app.use("/api/category", categoryRoute);
 app.use("/api/auth", authRoute);
+app.use("/api/upload", uploadRoute);
 app.listen(port, () => {
   console.log(`Server is running at ${port}`);
 });
