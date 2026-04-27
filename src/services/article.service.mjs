@@ -68,10 +68,38 @@ const ArticleService = {
   },
 
   createArticle: async (articleData) => {
+    if (articleData.status_id == null && typeof articleData.status === "string") {
+      const statusName = articleData.status.trim().toLowerCase();
+      const fallbackStatusName = statusName === "published" ? "publish" : null;
+      const resolvedStatusId =
+        (await ArticleRepository.getStatusIdByName(statusName)) ||
+        (fallbackStatusName ? await ArticleRepository.getStatusIdByName(fallbackStatusName) : null);
+
+      if (resolvedStatusId == null) {
+        throw createHttpError(400, "Status is invalid");
+      }
+
+      articleData.status_id = resolvedStatusId;
+    }
+
     await ArticleRepository.createArticle(articleData);
   },
 
   updateArticleById: async (articleId, articleData) => {
+    if (articleData.status_id == null && typeof articleData.status === "string") {
+      const statusName = articleData.status.trim().toLowerCase();
+      const fallbackStatusName = statusName === "published" ? "publish" : null;
+      const resolvedStatusId =
+        (await ArticleRepository.getStatusIdByName(statusName)) ||
+        (fallbackStatusName ? await ArticleRepository.getStatusIdByName(fallbackStatusName) : null);
+
+      if (resolvedStatusId == null) {
+        throw createHttpError(400, "Status is invalid");
+      }
+
+      articleData.status_id = resolvedStatusId;
+    }
+
     const rowCount = await ArticleRepository.updateArticleById(articleId, articleData);
     if (rowCount === 0) {
       throw createHttpError(404, "Server could not find a requested article to update");

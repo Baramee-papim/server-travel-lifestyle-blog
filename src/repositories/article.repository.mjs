@@ -68,6 +68,17 @@ const ArticleRepository = {
     await connectionPool.query(query, values);
   },
 
+  getStatusIdByName: async (statusName) => {
+    const query = `
+      SELECT id
+      FROM statuses
+      WHERE LOWER(status) = LOWER($1)
+      LIMIT 1
+    `;
+    const result = await connectionPool.query(query, [statusName]);
+    return result.rows[0]?.id || null;
+  },
+
   updateArticleById: async (articleId, articleData) => {
     const query = `
       UPDATE posts

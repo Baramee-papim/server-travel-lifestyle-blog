@@ -46,10 +46,12 @@ const ArticleMiddleware = {
       errors.push("Content must be a string");
     }
 
-    if (isMissing(data.status_id)) {
-      errors.push("Status ID is required");
-    } else if (typeof data.status_id !== "number") {
+    if (isMissing(data.status_id) && isMissing(data.status)) {
+      errors.push("Status is required");
+    } else if (!isMissing(data.status_id) && typeof data.status_id !== "number") {
       errors.push("Status ID must be a number");
+    } else if (!isMissing(data.status) && typeof data.status !== "string") {
+      errors.push("Status must be a string");
     }
 
     if (errors.length > 0) {
