@@ -1,17 +1,41 @@
 import connectionPool from "../utils/db.mjs";
 
+const postsFromWithJoins = `
+  FROM posts p
+  LEFT JOIN categories c ON p.category_id = c.id
+  LEFT JOIN statuses s ON p.status_id = s.id
+`;
+
+const postsColumnsBase = `
+  p.id,
+  p.image,
+  p.title,
+  p.description,
+  p.date,
+  p.content,
+  p.likes_count
+`;
+
+const postsSelectWithJoins = `
+  SELECT
+    ${postsColumnsBase},
+    c.name AS category,
+    s.status AS status
+  ${postsFromWithJoins}
+`;
+
 const ArticleRepository = {
   getArticlesCount: async ({ whereClause, values }) => {
-    const countQuery = `SELECT COUNT(*) as total FROM posts ${whereClause}`;
+    const countQuery = `SELECT COUNT(*) as total ${postsFromWithJoins} ${whereClause}`;
     const result = await connectionPool.query(countQuery, values);
     return parseInt(result.rows[0].total, 10);
   },
 
   getArticles: async ({ whereClause, values, limit, offset }) => {
     const dataQuery = `
-      SELECT * FROM posts
+      ${postsSelectWithJoins}
       ${whereClause}
-      ORDER BY id DESC
+      ORDER BY p.id DESC
       LIMIT $${values.length + 1} OFFSET $${values.length + 2}
     `;
     const dataValues = [...values, limit, offset];
@@ -20,7 +44,10 @@ const ArticleRepository = {
   },
 
   getArticleById: async (articleId) => {
-    const query = `SELECT * FROM posts WHERE id = $1`;
+    const query = `
+      ${postsSelectWithJoins}
+      WHERE p.id = $1
+    `;
     const result = await connectionPool.query(query, [articleId]);
     return result.rows[0] || null;
   },
@@ -39,6 +66,17 @@ const ArticleRepository = {
       articleData.status_id,
     ];
     await connectionPool.query(query, values);
+  },
+
+  getStatusIdByName: async (statusName) => {
+    const query = `
+      SELECT id
+      FROM statuses
+      WHERE LOWER(status) = LOWER($1)
+      LIMIT 1
+    `;
+    const result = await connectionPool.query(query, [statusName]);
+    return result.rows[0]?.id || null;
   },
 
   updateArticleById: async (articleId, articleData) => {

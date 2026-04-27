@@ -16,7 +16,7 @@ const createHttpError = (status, message) => {
 };
 
 const ArticleService = {
-  getArticles: async ({ page, limit, category, keyword }) => {
+  getArticles: async ({ page, limit, category, status, keyword }) => {
     const currentPage = toPositiveInt(page, 1);
     const currentLimit = toPositiveInt(limit, 6);
     const offset = (currentPage - 1) * currentLimit;
@@ -25,15 +25,26 @@ const ArticleService = {
     const values = [];
 
     if (category) {
-      conditions.push(`category_id = $${values.length + 1}`);
+      conditions.push(`p.category_id = $${values.length + 1}`);
       values.push(category);
+    }
+
+    if (status) {
+      const normalizedStatus = String(status).trim().toLowerCase();
+      if (normalizedStatus === "published") {
+        conditions.push(`LOWER(s.status) IN ($${values.length + 1}, $${values.length + 2})`);
+        values.push("published", "publish");
+      } else {
+        conditions.push(`LOWER(s.status) = $${values.length + 1}`);
+        values.push(normalizedStatus);
+      }
     }
 
     if (keyword) {
       conditions.push(`(
-        title ILIKE $${values.length + 1} OR
-        description ILIKE $${values.length + 1} OR
-        content ILIKE $${values.length + 1}
+        p.title ILIKE $${values.length + 1} OR
+        p.description ILIKE $${values.length + 1} OR
+        p.content ILIKE $${values.length + 1}
       )`);
       values.push(`%${keyword}%`);
     }
@@ -68,10 +79,38 @@ const ArticleService = {
   },
 
   createArticle: async (articleData) => {
+    if (articleData.status_id == null && typeof articleData.status === "string") {
+      const statusName = articleData.status.trim().toLowerCase();
+      const fallbackStatusName = statusName === "published" ? "publish" : null;
+      const resolvedStatusId =
+        (await ArticleRepository.getStatusIdByName(statusName)) ||
+        (fallbackStatusName ? await ArticleRepository.getStatusIdByName(fallbackStatusName) : null);
+
+      if (resolvedStatusId == null) {
+        throw createHttpError(400, "Status is invalid");
+      }
+
+      articleData.status_id = resolvedStatusId;
+    }
+
     await ArticleRepository.createArticle(articleData);
   },
 
   updateArticleById: async (articleId, articleData) => {
+    if (articleData.status_id == null && typeof articleData.status === "string") {
+      const statusName = articleData.status.trim().toLowerCase();
+      const fallbackStatusName = statusName === "published" ? "publish" : null;
+      const resolvedStatusId =
+        (await ArticleRepository.getStatusIdByName(statusName)) ||
+        (fallbackStatusName ? await ArticleRepository.getStatusIdByName(fallbackStatusName) : null);
+
+      if (resolvedStatusId == null) {
+        throw createHttpError(400, "Status is invalid");
+      }
+
+      articleData.status_id = resolvedStatusId;
+    }
+
     const rowCount = await ArticleRepository.updateArticleById(articleId, articleData);
     if (rowCount === 0) {
       throw createHttpError(404, "Server could not find a requested article to update");
