@@ -22,6 +22,12 @@ const AuthService = {
     const { data, error: supabaseError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          username,
+          name,
+        },
+      },
     });
 
     if (supabaseError) {
@@ -31,15 +37,13 @@ const AuthService = {
 
       throw createHttpError(400, "Failed to create user. Please try again.");
     }
-
-    const createdUser = await AuthRepository.createUser({
-      id: data.user.id,
+    return {
+      id: data.user?.id,
+      email: data.user?.email ?? email,
       username,
       name,
       role: "user",
-    });
-
-    return createdUser;
+    };
   },
 
   login: async ({ email, password }) => {
