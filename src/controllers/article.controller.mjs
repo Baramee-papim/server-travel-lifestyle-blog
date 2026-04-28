@@ -116,6 +116,30 @@ const ArticleController = {
       );
     }
   },
+
+  likeArticle: async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          message: "Unauthorized",
+          error: "Unauthorized",
+        });
+      }
+      const { likesCount, inserted } = await ArticleService.likeArticle(
+        req.params.articleId,
+        userId,
+      );
+      return res.status(200).json({
+        data: {
+          likes_count: likesCount,
+          already_liked: !inserted,
+        },
+      });
+    } catch (error) {
+      return handleControllerError(res, error, "Server could not record like");
+    }
+  },
 };
 
 export default ArticleController;

@@ -103,6 +103,47 @@ const ArticleRepository = {
     const result = await connectionPool.query(query, [articleId]);
     return result.rowCount;
   },
+
+  /**
+   * Inserts into `likes` (post_id, user_id). Requires UNIQUE (post_id, user_id) for ON CONFLICT.
+   * Increments posts.likes_count only when a new row is inserted.
+   * @returns {{ likesCount: number, inserted: boolean }}
+   */
+  addPostLike: async (postId, userId) => {
+    const client = await connectionPool.connect();
+    try {
+      await client.query("BEGIN");
+      const insertResult = await client.query(
+        `INSERT INTO likes (post_id, user_id)
+         VALUES ($1, $2::uuid)
+         ON CONFLICT (post_id, user_id) DO NOTHING
+         RETURNING id`,
+        [postId, userId],
+      );
+      const inserted = insertResult.rowCount > 0;
+      let likesCount;
+      if (inserted) {
+        const updateResult = await client.query(
+          `UPDATE posts
+           SET likes_count = COALESCE(likes_count, 0) + 1
+           WHERE id = $1
+           RETURNING likes_count`,
+          [postId],
+        );
+        likesCount = updateResult.rows[0]?.likes_count ?? 0;
+      } else {
+        const sel = await client.query(`SELECT likes_count FROM posts WHERE id = $1`, [postId]);
+        likesCount = sel.rows[0]?.likes_count ?? 0;
+      }
+      await client.query("COMMIT");
+      return { likesCount, inserted };
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+  },
 };
 
 export default ArticleRepository;

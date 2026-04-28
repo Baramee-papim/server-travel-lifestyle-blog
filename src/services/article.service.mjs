@@ -123,6 +123,19 @@ const ArticleService = {
       throw createHttpError(404, "Server could not find a requested article to delete");
     }
   },
+
+  /** Records a like for a published post; same user/post only increments once. */
+  likeArticle: async (articleId, userId) => {
+    const article = await ArticleRepository.getArticleById(articleId);
+    if (!article) {
+      throw createHttpError(404, "Server could not find a requested article");
+    }
+    const normalized = String(article.status ?? "").trim().toLowerCase();
+    if (normalized !== "published" && normalized !== "publish") {
+      throw createHttpError(404, "Server could not find a requested article");
+    }
+    return ArticleRepository.addPostLike(articleId, userId);
+  },
 };
 
 export default ArticleService;

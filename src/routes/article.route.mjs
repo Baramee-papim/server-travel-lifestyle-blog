@@ -1,10 +1,17 @@
 import { Router } from "express";
 import ArticleMiddleware from "../middleware/article.middleware.mjs";
 import ArticleController from "../controllers/article.controller.mjs";
+import protectUser from "../middleware/protectUser.mjs";
 
 const articleRoute = Router();
 
 articleRoute.get("/", ArticleController.getPublicArticles);
+
+articleRoute.post(
+  "/:articleId/like",
+  [protectUser, ArticleMiddleware.validateArticleId],
+  ArticleController.likeArticle,
+);
 
 articleRoute.get(
   "/:articleId",
