@@ -37,6 +37,10 @@ app.use("/api/admin/article", adminArticleRoute);
 app.use("/api/category", categoryRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/upload", uploadRoute);
-app.listen(port, () => {
-  console.log(`Server is running at ${port}`);
-});
+
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`Server is running at ${port}`);
+  });
+}
+export default app;
