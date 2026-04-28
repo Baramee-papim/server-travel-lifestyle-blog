@@ -9,7 +9,49 @@ const handleControllerError = (res, error, fallbackMessage) => {
   });
 };
 
+const isPublishedStatus = (status) => {
+  const normalized = String(status ?? "").trim().toLowerCase();
+  return normalized === "published" || normalized === "publish";
+};
+
 const ArticleController = {
+  /** Public list: always published only (ignore client status). */
+  getPublicArticles: async (req, res) => {
+    try {
+      const articlesResult = await ArticleService.getArticles({
+        ...req.query,
+        status: "published",
+      });
+      return res.status(200).json(articlesResult);
+    } catch (error) {
+      return handleControllerError(
+        res,
+        error,
+        "Server could not read article because database connection"
+      );
+    }
+  },
+
+  /** Public detail: 404 if not published. */
+  getPublicArticleById: async (req, res) => {
+    try {
+      const article = await ArticleService.getArticleById(req.params.articleId);
+      if (!isPublishedStatus(article.status)) {
+        return res.status(404).json({
+          message: "Server could not find a requested article",
+          error: "Server could not find a requested article",
+        });
+      }
+      return res.status(200).json({ data: article });
+    } catch (error) {
+      return handleControllerError(
+        res,
+        error,
+        "Server could not read article because database connection"
+      );
+    }
+  },
+
   getArticles: async (req, res) => {
     try {
       const articlesResult = await ArticleService.getArticles(req.query);

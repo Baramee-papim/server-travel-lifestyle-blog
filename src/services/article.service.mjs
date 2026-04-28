@@ -18,7 +18,7 @@ const createHttpError = (status, message) => {
 const ArticleService = {
   getArticles: async ({ page, limit, category, status, keyword }) => {
     const currentPage = toPositiveInt(page, 1);
-    const currentLimit = toPositiveInt(limit, 6);
+    const currentLimit = toPositiveInt(limit, 10);
     const offset = (currentPage - 1) * currentLimit;
 
     const conditions = [];

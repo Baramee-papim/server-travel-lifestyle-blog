@@ -4,12 +4,12 @@ import ArticleController from "../controllers/article.controller.mjs";
 
 const articleRoute = Router();
 
-articleRoute.get("/", ArticleController.getArticles);
+articleRoute.get("/", ArticleController.getPublicArticles);
 
 articleRoute.get(
   "/:articleId",
   [ArticleMiddleware.validateArticleId],
-  ArticleController.getArticleById
+  ArticleController.getPublicArticleById
 );
 
 articleRoute.post(
