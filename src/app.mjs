@@ -2,6 +2,7 @@ import express from "express";
 import "dotenv/config";
 import cors from "cors";
 import articleRoute from "./routes/article.route.mjs";
+import adminArticleRoute from "./routes/adminArticle.route.mjs";
 import authRoute from "./routes/auth.route.mjs";
 import categoryRoute from "./routes/category.route.mjs";
 import uploadRoute from "./routes/upload.route.mjs";
@@ -32,6 +33,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/article", articleRoute);
+app.use("/api/admin/article", adminArticleRoute);
 app.use("/api/category", categoryRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/upload", uploadRoute);
