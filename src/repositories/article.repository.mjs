@@ -43,12 +43,23 @@ const ArticleRepository = {
     return result.rows;
   },
 
-  getArticleById: async (articleId) => {
+  /**
+   * @param {string | null} [viewerUserId] - When set, `liked_by_me` reflects likes row for this user.
+   */
+  getArticleById: async (articleId, viewerUserId = null) => {
     const query = `
-      ${postsSelectWithJoins}
+      SELECT
+        ${postsColumnsBase},
+        c.name AS category,
+        s.status AS status,
+        ($2::uuid IS NOT NULL AND EXISTS (
+          SELECT 1 FROM likes l
+          WHERE l.post_id = p.id AND l.user_id = $2::uuid
+        )) AS liked_by_me
+      ${postsFromWithJoins}
       WHERE p.id = $1
     `;
-    const result = await connectionPool.query(query, [articleId]);
+    const result = await connectionPool.query(query, [articleId, viewerUserId]);
     return result.rows[0] || null;
   },
 
@@ -114,8 +125,8 @@ const ArticleRepository = {
     try {
       await client.query("BEGIN");
       const insertResult = await client.query(
-        `INSERT INTO likes (post_id, user_id)
-         VALUES ($1, $2::uuid)
+        `INSERT INTO likes (post_id, user_id, liked_at)
+         VALUES ($1, $2::uuid, now())
          ON CONFLICT (post_id, user_id) DO NOTHING
          RETURNING id`,
         [postId, userId],

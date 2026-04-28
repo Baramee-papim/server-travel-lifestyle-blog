@@ -35,7 +35,8 @@ const ArticleController = {
   /** Public detail: 404 if not published. */
   getPublicArticleById: async (req, res) => {
     try {
-      const article = await ArticleService.getArticleById(req.params.articleId);
+      const viewerUserId = req.user?.id ?? null;
+      const article = await ArticleService.getArticleById(req.params.articleId, viewerUserId);
       if (!isPublishedStatus(article.status)) {
         return res.status(404).json({
           message: "Server could not find a requested article",
@@ -67,7 +68,8 @@ const ArticleController = {
 
   getArticleById: async (req, res) => {
     try {
-      const article = await ArticleService.getArticleById(req.params.articleId);
+      const viewerUserId = req.user?.id ?? null;
+      const article = await ArticleService.getArticleById(req.params.articleId, viewerUserId);
       return res.status(200).json({ data: article });
     } catch (error) {
       return handleControllerError(
