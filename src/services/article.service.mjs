@@ -69,8 +69,8 @@ const ArticleService = {
     };
   },
 
-  getArticleById: async (articleId) => {
-    const article = await ArticleRepository.getArticleById(articleId);
+  getArticleById: async (articleId, viewerUserId = null) => {
+    const article = await ArticleRepository.getArticleById(articleId, viewerUserId);
     if (!article) {
       throw createHttpError(404, "Server could not find a requested article");
     }
@@ -122,6 +122,19 @@ const ArticleService = {
     if (rowCount === 0) {
       throw createHttpError(404, "Server could not find a requested article to delete");
     }
+  },
+
+  /** Records a like for a published post; same user/post only increments once. */
+  likeArticle: async (articleId, userId) => {
+    const article = await ArticleRepository.getArticleById(articleId, null);
+    if (!article) {
+      throw createHttpError(404, "Server could not find a requested article");
+    }
+    const normalized = String(article.status ?? "").trim().toLowerCase();
+    if (normalized !== "published" && normalized !== "publish") {
+      throw createHttpError(404, "Server could not find a requested article");
+    }
+    return ArticleRepository.addPostLike(articleId, userId);
   },
 };
 
